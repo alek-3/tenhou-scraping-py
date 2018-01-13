@@ -1,10 +1,12 @@
 import bs4
 from operator import itemgetter
 import datetime
+import os
 
 output = []
+path = os.path.join('天鳳ランキング_files', 'dummy.html')
 
-with open('天鳳ランキング_files\dummy.html', 'r', encoding='utf-8') as f:
+with open(path, 'r', encoding='utf-8') as f:
     # ファイルをhtml解析しやすいよう変換
     soup = bs4.BeautifulSoup(f, 'html.parser')
 
