@@ -14,42 +14,34 @@ with open(path, 'r', encoding='utf-8') as f:
     player_name = soup.select('#txtPlayerID')[0].get('value')
     print(player_name)
 
+    # 対戦情報をすべて抽出
+    spans = soup.find_all('span')
+
     count = 1
-    # 対戦数だけ繰り返す
-    while True:
-        # id指定のため、対戦番号を文字列化
-        if count < 10:
-            str_count = '0' + str(count)
-        else:
-            str_count = str(count)
+    for i in spans:
+        id_text = i['id']
 
-        # 対戦番号の1位～4位のプレーヤー名のidを作成する。
-        id_first = '#rptMain_ctl' + str_count + '_lblPLAYER1'
-        id_second = '#rptMain_ctl' + str_count + '_lblPLAYER2'
-        id_third = '#rptMain_ctl' + str_count + '_lblPLAYER3'
-        id_fourth = '#rptMain_ctl' + str_count + '_lblPLAYER4'
+        # プレーヤー名と一致した項目のidから、順位を見る
+        if i.getText() == player_name:
+            if 'PLAYER1' in id_text:
+                rank = 1
+            elif 'PLAYER2' in id_text:
+                rank = 2
+            elif 'PLAYER3' in id_text:
+                rank = 3
+            else: # 4位引いたとき
+                rank = 4
+            # 対戦番号と順位を記録
+            result = {
+                'No.': count,
+                '順位': rank
+            }
+            output.append(result)
 
-        # 対戦番号の1位～4位のプレーヤー名を抽出する。
-        text_first = soup.select(id_first)[0].getText()
-        text_second = soup.select(id_second)[0].getText()
-        text_third = soup.select(id_third)[0].getText()
-        text_fourth = soup.select(id_fourth)[0].getText()
+            # 戦績を追加した段階で対戦数を加算
+            count += 1 
 
-        result = {
-            'No.': count,
-            '1位': text_first,
-            '2位': text_second,
-            '3位': text_third,
-            '4位': text_fourth
-        }
-
-        output.append(result)
-
-        count += 1
-    
-        if count > 861:
-            break
-
+# 新しい順になっていた戦績を古い順に逆転
 output = sorted(output, key=lambda x: x['No.'], reverse=True)
 
 # 取得されたoutputをベースに分析する
@@ -62,12 +54,13 @@ count_fourth = 0
 
 for row in output:
     game_num = num_games - row['No.']
+
     # プレーヤーの順位を取得し、回数に追加する。
-    if row['1位'] == player_name:
+    if row['順位'] == 1:
         count_first += 1
-    elif row['2位'] == player_name:
+    elif row['順位'] == 2:
         count_second += 1
-    elif row['3位'] == player_name:
+    elif row['順位'] == 3:
         count_third += 1
     else:
         count_fourth += 1
